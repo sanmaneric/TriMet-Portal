@@ -3,7 +3,7 @@ Eric Sanman
 TriMet API Python Proof-of-Concept
 26 April 2022
 
-Prints arrivals of up to two given stopIDs arrival time using TriMet API.
+Prints arrivals of two given stopIDs arrival time using TriMet API.
 """
 # Import everything needed
 import requests
@@ -12,11 +12,12 @@ import time
 import datetime
 
 # === MAIN PREFS ===
-url = "http://developer.trimet.org/ws/v2/arrivals"
-# MAX 2 locIDs! More will break the program!
-locIDs = [13723]
+locIDs = [7601]
 arrivalCount = 1
-apiKey = "YOUR-API-KEY"
+apiKey = "redacted"
+url = f"http://developer.trimet.org/ws/v2/arrivals?locIDs={locIDs[0]}&appID={apiKey}&arrivals=1"
+# MAX 2 locIDs! More will break the program!
+
 
 # === RUN HOURS (24HR FORMAT) ===
 startTime = datetime.time(6, 30, 0)
@@ -24,8 +25,9 @@ endTime =datetime.time(0, 55, 0)
 
 # === GET ARRIVAL INFO FROM TRIMET ===
 def get_train_arrival_in_mins(stopID):
-    payload = {'locIDs': stopID,'appID': apiKey,'arrivals': arrivalCount}
-    returnData = requests.get(url, params=payload)
+    #payload = {'locIDs': stopID,'appID': apiKey,'arrivals': arrivalCount}
+    returnData = requests.get(url)
+    #params=payload
     #print(returnData.text)
     
     json_data = json.loads(returnData.text)
@@ -35,6 +37,7 @@ def get_train_arrival_in_mins(stopID):
     locDesc = str(json_data['resultSet']['location'][0]['desc'])
     
     timeNow = int(time.time()) * 1000
+    print(timeNow)
     arrivalTimeEpoch = epochArrival - timeNow
     minutesToArrival = (arrivalTimeEpoch/(1000)/60)
 
@@ -45,7 +48,7 @@ def get_train_arrival_in_mins(stopID):
 # Replace while true with this to disable while trains are resting
 # startTime < datetime.datetime.now() < endTime
 while True:
-    time.sleep(3 - time.monotonic() % 1) 
+    time.sleep(10 - time.monotonic() % 1) 
     if len(locIDs) == 2:
         minutesToArrival, stopDesc, locDesc = get_train_arrival_in_mins(locIDs[0])
         minutesToArrival1, stopDesc1, locDesc1 = get_train_arrival_in_mins(locIDs[1]) 
